@@ -1,0 +1,30 @@
+services:
+  faster-whisper:
+    image: lscr.io/linuxserver/faster-whisper:gpu  # GPU-optimiertes Image
+    container_name: faster-whisper
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+#      - WHISPER_MODEL=medium-int8      # schneller, quantisiertes Modell
+      - WHISPER_MODEL=large-v3-turbo
+      - WHISPER_BEAM=1                 # niedrig, für Geschwindigkeit
+      - WHISPER_LANG=de                # Deutsch
+      - LOG_LEVEL=INFO                 # Log-Level
+    volumes:
+      - ./faster-whisper/data:/config  # zum Speichern von Modellen und config
+    ports:
+      - "10300:10300"                  # Wyoming Speech-Protokoll-Port
+    restart: unless-stopped
+    gpus: all                         # GPU aktivieren
+   # runtime: nvidia                   # in Docker-Umgebungen nötig
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+                - utility
+                - compute

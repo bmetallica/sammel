@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    gpus: all
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]  # nutzt RTX 3060
+
+#  whisper:
+#    image: rhasspy/wyoming-whisper
+#    volumes:
+#      - ./whisper/audio:/data
+#    ports:
+#      - "10300:10300"
+#    environment:
+#      - MODEL=lsrge-v2
+#      - LANGUAGE=de
+
+  piper:
+    image: rhasspy/wyoming-piper
+    ports:
+      - "10200:10200"
+    volumes:
+      - ./piper/voices:/root/.local/share/piper/voices
+    environment:
+      - VOICE=de-thorsten-high
+
+  bridge:
+    build: ./bridge
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./whisper/audio:/data
+    depends_on:
+ #     - whisper
+      - ollama
+      - piper
+
+
+#  openwebui:
+#    image: ghcr.io/open-webui/open-webui:main
+#    ports:
+#      - "3000:8080"
+#    volumes:
+#      - openwebui-data:/app/backend/data
+#    environment:
+#      - OLLAMA_BASE_URL=http://ollama:11434
+#    depends_on:
+#      - ollama
+
+volumes:
+  ollama_data:
+  openwebui-data:
